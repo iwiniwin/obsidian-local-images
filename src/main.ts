@@ -106,11 +106,11 @@ export default class LocalImagesPlugin extends Plugin {
       callback: this.processActivePage,
     });
 
-    this.addCommand({
-      id: "download-images-all",
-      name: "Download images locally for all your notes",
-      callback: this.processAllPages,
-    });
+    // this.addCommand({
+    //   id: "download-images-all",
+    //   name: "Download images locally for all your notes",
+    //   callback: this.processAllPages,
+    // });
 
     this.registerCodeMirror((cm: CodeMirror.Editor) => {
       // on("beforeChange") can not execute async function in event handler, so we use queue to pass modified pages to timeouted handler

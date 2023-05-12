@@ -41,9 +41,6 @@ export function imageTagProcessor(app: App, mediaDir: string) {
 
           if (needWrite && fileName) {
             await app.vault.createBinary(fileName, fileData);
-          }
-
-          if (fileName) {
             return `![${anchor}](${fileName})`;
           } else {
             return match;
@@ -77,52 +74,56 @@ async function chooseFileName(
   if (!fileExt) {
     return { fileName: "", needWrite: false };
   }
-  // if there is no anchor try get file name from url
-  if (!baseName) {
-    const parsedUrl = new URL(link);
 
-    baseName = path.basename(parsedUrl.pathname);
-  }
-  // if there is no part for file name from url use name template
-  if (!baseName) {
-    baseName = FILENAME_TEMPLATE;
-  }
 
-  // if filename already ends with correct extension, remove it to work with base name
-  if (baseName.endsWith(`.${fileExt}`)) {
-    baseName = baseName.slice(0, -1 * (fileExt.length + 1));
-  }
+  let name = linkHashes.ensureHashGenerated(link, contentData);
+  return { fileName: pathJoin(dir, `${name}.${fileExt}`), needWrite: true };
+  // // if there is no anchor try get file name from url
+  // if (!baseName) {
+  //   const parsedUrl = new URL(link);
 
-  baseName = cleanFileName(baseName);
+  //   baseName = path.basename(parsedUrl.pathname);
+  // }
+  // // if there is no part for file name from url use name template
+  // if (!baseName) {
+  //   baseName = FILENAME_TEMPLATE;
+  // }
 
-  let fileName = "";
-  let needWrite = true;
-  let index = 0;
-  while (!fileName && index < MAX_FILENAME_INDEX) {
-    const suggestedName = index
-      ? pathJoin(dir, `${baseName}-${index}.${fileExt}`)
-      : pathJoin(dir, `${baseName}.${fileExt}`);
+  // // if filename already ends with correct extension, remove it to work with base name
+  // if (baseName.endsWith(`.${fileExt}`)) {
+  //   baseName = baseName.slice(0, -1 * (fileExt.length + 1));
+  // }
 
-    if (await adapter.exists(suggestedName, false)) {
-      linkHashes.ensureHashGenerated(link, contentData);
+  // baseName = cleanFileName(baseName);
 
-      const fileData = await adapter.readBinary(suggestedName);
+  // let fileName = "";
+  // let needWrite = true;
+  // let index = 0;
+  // while (!fileName && index < MAX_FILENAME_INDEX) {
+  //   const suggestedName = index
+  //     ? pathJoin(dir, `${baseName}-${index}.${fileExt}`)
+  //     : pathJoin(dir, `${baseName}.${fileExt}`);
 
-      if (linkHashes.isSame(link, fileData)) {
-        fileName = suggestedName;
-        needWrite = false;
-      }
-    } else {
-      fileName = suggestedName;
-    }
+  //   if (await adapter.exists(suggestedName, false)) {
+  //     linkHashes.ensureHashGenerated(link, contentData);
 
-    index++;
-  }
-  if (!fileName) {
-    throw new Error("Failed to generate file name for media file.");
-  }
+  //     const fileData = await adapter.readBinary(suggestedName);
 
-  linkHashes.ensureHashGenerated(link, contentData);
+  //     if (linkHashes.isSame(link, fileData)) {
+  //       fileName = suggestedName;
+  //       needWrite = false;
+  //     }
+  //   } else {
+  //     fileName = suggestedName;
+  //   }
 
-  return { fileName, needWrite };
+  //   index++;
+  // }
+  // if (!fileName) {
+  //   throw new Error("Failed to generate file name for media file.");
+  // }
+
+  // linkHashes.ensureHashGenerated(link, contentData);
+
+  // return { fileName, needWrite };
 }

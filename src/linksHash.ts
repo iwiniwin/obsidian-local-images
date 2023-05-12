@@ -7,6 +7,7 @@ class LinkHashes {
     if (!this.linksInfo[link]) {
       this.linksInfo[link] = XXHash32.hash(0, data).toNumber();
     }
+    return this.linksInfo[link];
   }
 
   isSame(link: string, data: ArrayBuffer) {
