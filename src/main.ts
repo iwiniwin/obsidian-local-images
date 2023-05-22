@@ -29,7 +29,7 @@ export default class LocalImagesPlugin extends Plugin {
     // const content = await this.app.vault.read(file);
     const content = await this.app.vault.cachedRead(file);
 
-    await this.ensureFolderExists(this.settings.mediaRootDirectory);
+    await this.ensureFolderExists(this.getMediaDirectory());
 
     const cleanedContent = this.settings.cleanContent
       ? cleanContent(content)
@@ -37,7 +37,7 @@ export default class LocalImagesPlugin extends Plugin {
     const fixedContent = await replaceAsync(
       cleanedContent,
       EXTERNAL_MEDIA_LINK_PATTERN,
-      imageTagProcessor(this.app, this.settings.mediaRootDirectory)
+      imageTagProcessor(this.app, this.getMediaDirectory())
     );
 
     if (content != fixedContent) {
@@ -200,6 +200,14 @@ export default class LocalImagesPlugin extends Plugin {
       }
     }
   }
+
+  getMediaDirectory() {
+    if(this.settings.useTheAttachmentFolder) {
+      //@ts-ignore
+      return this.app.vault.getConfig('attachmentFolderPath');
+    }
+    return this.settings.mediaRootDirectory;
+  }
 }
 
 class SettingTab extends PluginSettingTab {
@@ -329,6 +337,21 @@ class SettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName("Use the attachment folder")
+      .setDesc("Use the attachment folder to keep all downloaded media files.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.useTheAttachmentFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.useTheAttachmentFolder = value;
+            await this.plugin.saveSettings();
+            this.display();
+          })
+      );
+
+
+    if(!this.plugin.settings.useTheAttachmentFolder) {
+      new Setting(containerEl)
       .setName("Media folder")
       .setDesc("Folder to keep all downloaded media files.")
       .addText((text) =>
@@ -339,5 +362,7 @@ class SettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+    }
+    
   }
 }
